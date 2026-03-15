@@ -1,0 +1,448 @@
+:root {
+  --bg: #0d1117;
+  --bg-deep: #06080c;
+  --panel: rgba(10, 16, 24, 0.78);
+  --panel-strong: rgba(16, 24, 35, 0.95);
+  --line: rgba(142, 180, 201, 0.18);
+  --line-strong: rgba(142, 180, 201, 0.34);
+  --text: #eef5f7;
+  --muted: #8ea5af;
+  --accent: #f25f4c;
+  --accent-soft: rgba(242, 95, 76, 0.16);
+  --secondary: #47c0b5;
+  --secondary-soft: rgba(71, 192, 181, 0.14);
+  --glow: rgba(242, 95, 76, 0.22);
+  --shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
+  --radius: 28px;
+  --radius-sm: 18px;
+  --max-width: 1360px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  font-family: "IBM Plex Sans SC", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(71, 192, 181, 0.18), transparent 28%),
+    radial-gradient(circle at 85% 10%, rgba(242, 95, 76, 0.18), transparent 24%),
+    linear-gradient(180deg, #0b0f14 0%, #071019 45%, #05070a 100%);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(circle at center, #000 45%, transparent 100%);
+}
+
+.noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.08;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.6) 0.6px, transparent 0.7px),
+    radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.6) 0.6px, transparent 0.7px),
+    radial-gradient(circle at 50% 70%, rgba(255, 255, 255, 0.45) 0.6px, transparent 0.7px);
+  background-size: 120px 120px;
+}
+
+.hero,
+.workspace,
+.site-footer {
+  width: min(calc(100% - 32px), var(--max-width));
+  margin: 0 auto;
+}
+
+.hero {
+  padding: 56px 0 28px;
+  display: grid;
+  grid-template-columns: 1.2fr 0.9fr;
+  gap: 22px;
+  align-items: stretch;
+}
+
+.hero-copy,
+.metric-card,
+.panel,
+.result-card,
+.insight-card {
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(12, 18, 26, 0.86), rgba(8, 13, 20, 0.9));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.hero-copy {
+  border-radius: 36px;
+  padding: 44px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-copy::after {
+  content: "";
+  position: absolute;
+  right: -50px;
+  top: -40px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--glow), transparent 66%);
+}
+
+.eyebrow,
+.panel-kicker,
+.result-head span,
+.insight-card span,
+.metric-label {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  font-size: 0.76rem;
+}
+
+.hero h1,
+.panel h2,
+.result-card h3,
+.insight-card strong,
+.metric-card strong {
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.hero h1 {
+  margin: 12px 0 16px;
+  max-width: 10ch;
+  font-size: clamp(3rem, 7vw, 6rem);
+  line-height: 0.95;
+}
+
+.hero-text {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 1.08rem;
+  line-height: 1.8;
+  color: var(--muted);
+}
+
+.hero-metrics {
+  display: grid;
+  gap: 16px;
+}
+
+.metric-card {
+  border-radius: 24px;
+  padding: 24px;
+  animation: floatIn 700ms ease both;
+}
+
+.metric-card:nth-child(2) {
+  animation-delay: 90ms;
+}
+
+.metric-card:nth-child(3) {
+  animation-delay: 180ms;
+}
+
+.metric-card p {
+  margin: 10px 0 0;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.workspace {
+  padding-bottom: 36px;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 22px;
+}
+
+.panel {
+  border-radius: var(--radius);
+  padding: 28px;
+  animation: riseUp 760ms ease both;
+}
+
+.output-panel {
+  animation-delay: 120ms;
+}
+
+.panel-head,
+.result-head,
+.cta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.panel-head h2,
+.result-card h3 {
+  margin: 4px 0 0;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.field-grid {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-wide {
+  grid-column: span 2;
+}
+
+.field span {
+  color: #dbe8ec;
+  font-size: 0.95rem;
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  background:
+    linear-gradient(var(--panel-strong), var(--panel-strong)) padding-box,
+    linear-gradient(135deg, rgba(71, 192, 181, 0.35), rgba(242, 95, 76, 0.35)) border-box;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #6e8590;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 4px rgba(71, 192, 181, 0.12);
+}
+
+.cta-row {
+  margin-top: 22px;
+  align-items: center;
+}
+
+.helper-text {
+  margin: 0;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.primary-btn,
+.ghost-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 22px;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.primary-btn {
+  color: #081015;
+  background: linear-gradient(135deg, #47c0b5, #f4ba53);
+  box-shadow: 0 18px 34px rgba(71, 192, 181, 0.18);
+}
+
+.ghost-btn {
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.primary-btn:hover,
+.ghost-btn:hover {
+  transform: translateY(-1px);
+}
+
+.insight-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.insight-card {
+  border-radius: 22px;
+  padding: 18px;
+}
+
+.insight-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.2rem;
+}
+
+.output-stack {
+  margin-top: 18px;
+  display: grid;
+  gap: 16px;
+}
+
+.sub-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.result-card {
+  border-radius: 24px;
+  padding: 22px;
+}
+
+.result-head {
+  align-items: baseline;
+}
+
+.code-block {
+  margin: 16px 0 0;
+  min-height: 380px;
+  padding: 20px;
+  border-radius: 20px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: "IBM Plex Sans SC", sans-serif;
+  line-height: 1.8;
+  background:
+    linear-gradient(180deg, rgba(3, 8, 12, 0.92), rgba(5, 10, 16, 0.98)),
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+  border: 1px solid rgba(71, 192, 181, 0.16);
+}
+
+.summary-list {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.summary-item {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  line-height: 1.7;
+}
+
+.summary-item strong {
+  color: #f7d48f;
+}
+
+.site-footer {
+  padding: 0 0 42px;
+}
+
+.site-footer p {
+  margin: 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+@keyframes riseUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateX(14px) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@media (max-width: 1100px) {
+  .hero,
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero {
+    padding-top: 26px;
+  }
+
+  .hero-copy,
+  .panel {
+    padding: 22px;
+    border-radius: 24px;
+  }
+
+  .field-grid,
+  .sub-grid,
+  .insight-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field-wide {
+    grid-column: span 1;
+  }
+
+  .panel-head,
+  .result-head,
+  .cta-row {
+    flex-direction: column;
+  }
+
+  .code-block {
+    min-height: 280px;
+  }
+}
