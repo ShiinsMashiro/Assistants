@@ -4,6 +4,9 @@ const modeSelect = document.querySelector("#mode-select");
 const formatSelect = document.querySelector("#format-select");
 const styleSelect = document.querySelector("#style-select");
 const languageSelect = document.querySelector("#language-select");
+const oversightSelect = document.querySelector("#oversight-select");
+const durationSelect = document.querySelector("#duration-select");
+const checkpointSelect = document.querySelector("#checkpoint-select");
 const audienceInput = document.querySelector("#audience-input");
 const referenceInput = document.querySelector("#reference-input");
 const mustInput = document.querySelector("#must-input");
@@ -13,13 +16,19 @@ const generateBtn = document.querySelector("#generate-btn");
 const sampleBtn = document.querySelector("#sample-btn");
 const clearBtn = document.querySelector("#clear-btn");
 const copyBtn = document.querySelector("#copy-btn");
+const copySupervisorBtn = document.querySelector("#copy-supervisor-btn");
 
 const optimizedOutput = document.querySelector("#optimized-output");
+const supervisorOutput = document.querySelector("#supervisor-output");
+const oversightOutput = document.querySelector("#oversight-output");
+const cadenceOutput = document.querySelector("#cadence-output");
 const summaryOutput = document.querySelector("#summary-output");
 const clarifyOutput = document.querySelector("#clarify-output");
 const detectedIntent = document.querySelector("#detected-intent");
 const contextStrength = document.querySelector("#context-strength");
 const clarifyCount = document.querySelector("#clarify-count");
+const oversightStatus = document.querySelector("#oversight-status");
+const durationStatus = document.querySelector("#duration-status");
 
 const intentLibrary = {
   prompt: {
@@ -80,6 +89,39 @@ const languageGuide = {
   zh: "使用中文输出。",
   en: "Use English for the response.",
   bilingual: "先用中文，再补充对应英文版本。",
+};
+
+const oversightGuide = {
+  off: {
+    label: "监工关闭",
+    tone: "不额外插入监督要求，按普通优化模式输出。",
+    enforcement: "如果任务可以直接执行，就直接执行，不增加额外汇报负担。",
+  },
+  standard: {
+    label: "标准监工",
+    tone: "在不打断执行效率的前提下，要求 AI 先拆阶段、报风险、做自检。",
+    enforcement: "每完成一个阶段都要用简短状态更新说明完成了什么、还差什么、下一步做什么。",
+  },
+  strict: {
+    label: "严格监工",
+    tone: "像项目监理一样控范围、控质量、控验收，不允许含糊带过。",
+    enforcement: "未经确认不要擅自扩大范围；每个阶段都要给完成证据、自检结论和剩余风险。",
+  },
+};
+
+const durationGuide = {
+  "2h": { label: "2 小时", totalMinutes: 120, focus: "快速修正与交付" },
+  "4h": { label: "4 小时", totalMinutes: 240, focus: "短周期实现与验收" },
+  "8h": { label: "8 小时", totalMinutes: 480, focus: "完整工作日推进" },
+  "24h": { label: "24 小时", totalMinutes: 1440, focus: "持续值守与多轮迭代" },
+  until_done: { label: "直到完成", totalMinutes: null, focus: "以完成为唯一停止条件" },
+};
+
+const checkpointGuide = {
+  "15m": { label: "每 15 分钟", minutes: 15 },
+  "30m": { label: "每 30 分钟", minutes: 30 },
+  "60m": { label: "每 60 分钟", minutes: 60 },
+  phase: { label: "每阶段一次", minutes: null },
 };
 
 function cleanText(value) {
@@ -203,6 +245,143 @@ function buildSummaryItems(data, intent, contextLevel, questions) {
   ];
 }
 
+function buildOversightChecklist(data, intent, questions) {
+  const items = [
+    "先复述真实目标，再开始执行，避免一上来就误做。",
+    `输出必须符合指定格式：${formatGuide[data.format]}`,
+    `语气与语言必须遵守：${styleGuide[data.style]} ${languageGuide[data.language]}`,
+    data.mustList.length
+      ? `逐条核对“必须包含”：${data.mustList.join(" / ")}`
+      : "如果用户没给硬性要求，也要先明确你采用了哪些默认执行标准。",
+    data.avoidList.length
+      ? `逐条规避“避免出现”：${data.avoidList.join(" / ")}`
+      : "不要编造事实，不要输出空泛模板，不要跳过限制条件。",
+    questions.length
+      ? `优先补上这些关键缺口：${questions.join(" / ")}`
+      : "如果没有明显信息缺口，直接推进，但要把关键假设写清楚。",
+    `必须持续汇报进度，至少按“${checkpointGuide[data.checkpoint].label}”更新一次当前状态。`,
+    "每次更新都要给出完成百分比、已完成项、阻塞项、下一步动作。",
+  ];
+
+  if (intent.label === "代码协作") {
+    items.push("涉及代码时，先给实现路径，再落到文件、模块、风险和验证方式。");
+  }
+
+  if (intent.label === "规划拆解") {
+    items.push("涉及计划时，必须拆成阶段、优先级、里程碑和下一步动作。");
+  }
+
+  if (intent.label === "内容写作") {
+    items.push("涉及写作时，先校准受众和口吻，再输出正文，不要直接堆华丽辞藻。");
+  }
+
+  if (data.references) {
+    items.push("输出前核对参考资料，不要和已知事实冲突。");
+  }
+
+  return items;
+}
+
+function buildCadencePlan(data, intent) {
+  const duration = durationGuide[data.duration];
+  const checkpoint = checkpointGuide[data.checkpoint];
+  const phases = [
+    { label: "阶段 1", name: "校准任务与边界", percent: "0%-10%", detail: "复述目标、锁定范围、列出假设和风险。" },
+    { label: "阶段 2", name: "方案设计与路径确认", percent: "10%-25%", detail: "给出执行方案、技术路线或内容结构，并确认优先级。" },
+    { label: "阶段 3", name: "主体执行", percent: "25%-70%", detail: "进入主要产出阶段，持续推进并处理阻塞。" },
+    { label: "阶段 4", name: "自检与补洞", percent: "70%-90%", detail: "对照要求回查缺失项、错误项和跑偏项。" },
+    { label: "阶段 5", name: "验收与交付", percent: "90%-100%", detail: "输出最终结果、列出验证结论和剩余风险。" },
+  ];
+
+  const items = [
+    `持续模式：${duration.label}，目标是 ${duration.focus}。`,
+    checkpoint.minutes
+      ? `状态回报节奏：${checkpoint.label}，每次回报都必须更新进度百分比与下一步。`
+      : "状态回报节奏：每阶段结束必须回报一次，遇到风险或阻塞时立即加报。",
+  ];
+
+  if (duration.totalMinutes) {
+    const slice = Math.max(1, Math.floor(duration.totalMinutes / phases.length));
+    phases.forEach((phase, index) => {
+      const start = index * slice;
+      const end = index === phases.length - 1 ? duration.totalMinutes : (index + 1) * slice;
+      items.push(`${phase.label}｜${phase.name}｜建议窗口 ${start}-${end} 分钟｜目标进度 ${phase.percent}｜${phase.detail}`);
+    });
+  } else {
+    phases.forEach((phase) => {
+      items.push(`${phase.label}｜${phase.name}｜目标进度 ${phase.percent}｜${phase.detail}`);
+    });
+  }
+
+  items.push("返工触发：发现遗漏 must 条件、违反 avoid 条件、偏离目标对象、与参考事实冲突、或进度停滞两次回报以上。");
+  items.push(`监工重点：${intent.label}场景下，要同时盯住质量、边界和连续推进，不允许只做一次性回答就结束。`);
+
+  return items;
+}
+
+function buildSupervisorPrompt(data, intent, questions) {
+  const oversight = oversightGuide[data.oversight];
+  const duration = durationGuide[data.duration];
+  const checkpoint = checkpointGuide[data.checkpoint];
+
+  if (data.oversight === "off") {
+    return [
+      "监工模式已关闭。",
+      "",
+      "如果你仍然想加一道质量把关，可以把模式切到“标准监工”或“严格监工”，系统会自动生成专门的监督提示词。",
+    ].join("\n");
+  }
+
+  const mustSection = data.mustList.length
+    ? data.mustList.map((item, index) => `${index + 1}. ${item}`).join("\n")
+    : "1. 忠实理解任务目标\n2. 信息不足时先指出缺口\n3. 输出必须可直接使用";
+
+  const avoidSection = data.avoidList.length
+    ? data.avoidList.map((item, index) => `${index + 1}. ${item}`).join("\n")
+    : "1. 不要编造事实\n2. 不要跳步\n3. 不要用空话掩盖未完成项";
+
+  const clarifySection = questions.length
+    ? questions.map((item, index) => `${index + 1}. ${item}`).join("\n")
+    : "1. 当前信息已经够用，若你做了假设，必须显式写出。";
+
+  return [
+    "你现在不是主执行者，而是这次任务的监工 / 验收官。",
+    `你要监督一个以“${intent.role}”身份工作的 AI，确保它没有跑偏、偷步、漏做或自作主张。`,
+    "",
+    "任务背景：",
+    `原始需求：${data.raw}`,
+    `补充上下文：${data.context || "暂无额外上下文。"}`,
+    `目标对象 / 使用场景：${data.audience || "未明确"}`,
+    `参考资料 / 已知事实：${data.references || "暂无"}`,
+    "",
+    "你的监工原则：",
+    `1. ${oversight.tone}`,
+    `2. ${oversight.enforcement}`,
+    `3. 这是一个“${duration.label}”的持续工作任务，不能只回答一次就停止，必须持续推进直到时间耗尽或任务完成。`,
+    `4. 状态回报节奏是“${checkpoint.label}”，每次必须输出：当前进度百分比 / 已完成事项 / 阻塞项 / 风险与偏差 / 下一步。`,
+    "5. 在正式给结果前，先要求对方用 2 到 5 个阶段说明准备怎么做，并给每个阶段标注预计进度区间。",
+    "6. 发现目标、范围、约束或事实有冲突时，立刻叫停并指出，不要默认继续。",
+    "7. 如果对方声称“已完成”，你必须按验收清单逐项核对后才允许结束。",
+    "8. 如果阶段推进停滞、两次回报没有实质进展，必须给出返工指令或改道方案。",
+    "",
+    "必须盯住的要求：",
+    mustSection,
+    "",
+    "必须防止的问题：",
+    avoidSection,
+    "",
+    "优先追问或核对的缺口：",
+    clarifySection,
+    "",
+    "输出格式要求：",
+    "1. 先给“监工判断”，一句话说明当前能不能直接开工。",
+    "2. 再给“执行阶段表”，列出阶段目标、交付物、验收点、目标进度百分比。",
+    "3. 然后给“持续工作规则”，明确回报频率、停工条件、返工条件、完成条件。",
+    "4. 如果主执行 AI 已经产出结果，再给“验收结论”：通过 / 部分通过 / 打回重做。",
+    "5. 最后给“下一步指令”，明确它接下来必须做什么，不能只说继续努力。",
+  ].join("\n");
+}
+
 function renderSummary(listContainer, items) {
   listContainer.innerHTML = "";
 
@@ -229,6 +408,17 @@ function renderClarifyQuestions(listContainer, questions) {
     const card = document.createElement("div");
     card.className = "summary-item";
     card.innerHTML = `<strong>建议 ${index + 1}</strong><div>${question}</div>`;
+    listContainer.appendChild(card);
+  });
+}
+
+function renderOversightChecklist(listContainer, items) {
+  listContainer.innerHTML = "";
+
+  items.forEach((item, index) => {
+    const card = document.createElement("div");
+    card.className = "summary-item";
+    card.innerHTML = `<strong>检查 ${index + 1}</strong><div>${item}</div>`;
     listContainer.appendChild(card);
   });
 }
@@ -290,6 +480,9 @@ function readFormData() {
     format: formatSelect.value,
     style: styleSelect.value,
     language: languageSelect.value,
+    oversight: oversightSelect.value,
+    duration: durationSelect.value,
+    checkpoint: checkpointSelect.value,
   };
 }
 
@@ -298,13 +491,22 @@ function generatePrompt() {
 
   if (!data.raw) {
     optimizedOutput.textContent = "请先填写“原始需求”，这样我才能帮你生成优化后的提示词。";
+    supervisorOutput.textContent = "开启监工模式后，这里会生成一个专门盯进度、控范围、做验收的辅助提示词。";
     detectedIntent.textContent = "等待输入";
     contextStrength.textContent = "低";
     clarifyCount.textContent = "0 条";
+    oversightStatus.textContent = oversightGuide[data.oversight].label;
+    durationStatus.textContent = durationGuide[data.duration].label;
     renderSummary(summaryOutput, [
       { label: "缺少核心输入", value: "先写下你想让 AI 做什么，再补充背景和限制条件。" },
     ]);
     renderClarifyQuestions(clarifyOutput, []);
+    renderOversightChecklist(oversightOutput, [
+      "先补充原始需求，再决定监工应该重点盯进度、质量还是范围。",
+    ]);
+    renderOversightChecklist(cadenceOutput, [
+      "先确定任务，再生成持续执行节奏。24 小时模式会自动要求 AI 持续汇报进度与返工状态。",
+    ]);
     return;
   }
 
@@ -313,15 +515,23 @@ function generatePrompt() {
   const questions = buildClarifyQuestions(data, intent);
   const contextLevel = computeContextStrength(data);
   const prompt = buildPrompt(data, intent, questions);
+  const supervisorPrompt = buildSupervisorPrompt(data, intent, questions);
+  const oversightChecklist = buildOversightChecklist(data, intent, questions);
+  const cadencePlan = buildCadencePlan(data, intent);
   const summaryItems = buildSummaryItems(data, intent, contextLevel, questions);
 
   optimizedOutput.textContent = prompt;
+  supervisorOutput.textContent = supervisorPrompt;
   detectedIntent.textContent = intent.label;
   contextStrength.textContent = contextLevel;
   clarifyCount.textContent = `${questions.length} 条`;
+  oversightStatus.textContent = oversightGuide[data.oversight].label;
+  durationStatus.textContent = `${durationGuide[data.duration].label} / ${checkpointGuide[data.checkpoint].label}`;
 
   renderSummary(summaryOutput, summaryItems);
   renderClarifyQuestions(clarifyOutput, questions);
+  renderOversightChecklist(oversightOutput, oversightChecklist);
+  renderOversightChecklist(cadenceOutput, cadencePlan);
 }
 
 function fillSample() {
@@ -333,6 +543,9 @@ function fillSample() {
   formatSelect.value = "structured";
   styleSelect.value = "professional";
   languageSelect.value = "zh";
+  oversightSelect.value = "strict";
+  durationSelect.value = "24h";
+  checkpointSelect.value = "30m";
   audienceInput.value = "网页端用户 / 通用 AI 助手";
   referenceInput.value = "用户原始表达、补充背景、限制条件、目标输出格式";
   mustInput.value =
@@ -354,36 +567,48 @@ function clearForm() {
   formatSelect.value = "structured";
   styleSelect.value = "clear";
   languageSelect.value = "zh";
+  oversightSelect.value = "standard";
+  durationSelect.value = "24h";
+  checkpointSelect.value = "30m";
   generatePrompt();
 }
 
-async function copyPrompt() {
-  const text = optimizedOutput.textContent.trim();
+async function copyText(button, text, idleLabel) {
+  const content = text.trim();
 
-  if (!text || text.startsWith("请先")) {
-    copyBtn.textContent = "先生成内容";
+  if (!content || content.startsWith("请先") || content.startsWith("开启监工模式")) {
+    button.textContent = "先生成内容";
     window.setTimeout(() => {
-      copyBtn.textContent = "复制提示词";
+      button.textContent = idleLabel;
     }, 1200);
     return;
   }
 
   try {
-    await navigator.clipboard.writeText(text);
-    copyBtn.textContent = "已复制";
+    await navigator.clipboard.writeText(content);
+    button.textContent = "已复制";
   } catch (error) {
-    copyBtn.textContent = "复制失败";
+    button.textContent = "复制失败";
   }
 
   window.setTimeout(() => {
-    copyBtn.textContent = "复制提示词";
+    button.textContent = idleLabel;
   }, 1400);
+}
+
+function copyPrompt() {
+  return copyText(copyBtn, optimizedOutput.textContent, "复制提示词");
+}
+
+function copySupervisorPrompt() {
+  return copyText(copySupervisorBtn, supervisorOutput.textContent, "复制监工提示词");
 }
 
 generateBtn.addEventListener("click", generatePrompt);
 sampleBtn.addEventListener("click", fillSample);
 clearBtn.addEventListener("click", clearForm);
 copyBtn.addEventListener("click", copyPrompt);
+copySupervisorBtn.addEventListener("click", copySupervisorPrompt);
 
 [rawInput, contextInput, audienceInput, referenceInput, mustInput, avoidInput].forEach((element) => {
   element.addEventListener("input", () => {
@@ -392,7 +617,7 @@ copyBtn.addEventListener("click", copyPrompt);
   });
 });
 
-[modeSelect, formatSelect, styleSelect, languageSelect].forEach((element) => {
+[modeSelect, formatSelect, styleSelect, languageSelect, oversightSelect, durationSelect, checkpointSelect].forEach((element) => {
   element.addEventListener("change", generatePrompt);
 });
 

@@ -124,6 +124,36 @@
           </label>
 
           <label class="field">
+            <span>监工模式</span>
+            <select id="oversight-select">
+              <option value="standard">标准监工</option>
+              <option value="strict">严格监工</option>
+              <option value="off">关闭</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>持续工作时长</span>
+            <select id="duration-select">
+              <option value="24h">24 小时连续推进</option>
+              <option value="8h">8 小时工作周期</option>
+              <option value="4h">4 小时冲刺</option>
+              <option value="2h">2 小时快修</option>
+              <option value="until_done">直到完成为止</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>回报频率</span>
+            <select id="checkpoint-select">
+              <option value="30m">每 30 分钟</option>
+              <option value="15m">每 15 分钟</option>
+              <option value="60m">每 60 分钟</option>
+              <option value="phase">每阶段一次</option>
+            </select>
+          </label>
+
+          <label class="field">
             <span>目标对象 / 使用场景</span>
             <input
               id="audience-input"
@@ -190,6 +220,14 @@
             <span>建议澄清</span>
             <strong id="clarify-count">0 条</strong>
           </article>
+          <article class="insight-card">
+            <span>监工状态</span>
+            <strong id="oversight-status">标准监工</strong>
+          </article>
+          <article class="insight-card">
+            <span>持续节奏</span>
+            <strong id="duration-status">24 小时</strong>
+          </article>
         </div>
 
         <div class="output-stack">
@@ -199,6 +237,37 @@
               <span>Ready to paste</span>
             </div>
             <pre id="optimized-output" class="code-block">请先在左侧输入原始需求与上下文。</pre>
+          </article>
+
+          <article class="result-card">
+            <div class="result-head">
+              <h3>监工提示词</h3>
+              <div class="panel-actions">
+                <span>Supervisor mode</span>
+                <button id="copy-supervisor-btn" class="ghost-btn" type="button">复制监工提示词</button>
+              </div>
+            </div>
+            <pre id="supervisor-output" class="code-block compact-code">开启监工模式后，这里会生成一个专门盯进度、控范围、做验收的辅助提示词。</pre>
+          </article>
+
+          <article class="result-card">
+            <div class="result-head">
+              <h3>监工验收清单</h3>
+              <span>Quality gates</span>
+            </div>
+            <div id="oversight-output" class="summary-list">
+              <p>系统会在这里列出交付前要过的检查项。</p>
+            </div>
+          </article>
+
+          <article class="result-card">
+            <div class="result-head">
+              <h3>持续执行排班</h3>
+              <span>24h supervision loop</span>
+            </div>
+            <div id="cadence-output" class="summary-list">
+              <p>系统会在这里拆出阶段节奏、进度更新节点和返工触发条件。</p>
+            </div>
           </article>
 
           <div class="sub-grid">
