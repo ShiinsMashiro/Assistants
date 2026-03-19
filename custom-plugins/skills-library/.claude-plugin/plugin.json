@@ -1,0 +1,10 @@
+{
+  "name": "skills-library",
+  "displayName": "Skills Library",
+  "description": "Personal skills library with 200+ skills for scientific research, programming, AI/ML, and more",
+  "version": "1.0.0",
+  "author": {
+    "name": "huangpaopao"
+  },
+  "homepage": "https://github.com/huangpaopao/skills-library"
+}

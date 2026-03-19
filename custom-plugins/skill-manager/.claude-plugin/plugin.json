@@ -1,0 +1,9 @@
+{
+  "name": "skill-manager",
+  "description": "Enhanced Skill Manager - discover, load, and manage 188+ Claude Code skills with smart categorization and on-demand loading",
+  "version": "1.0.0",
+  "author": {
+    "name": "User"
+  },
+  "keywords": ["skills", "manager", "productivity", "workflow", "automation"]
+}
