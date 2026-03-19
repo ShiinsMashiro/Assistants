@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prompt Optimizer | 提示词优化器</title>
+    <meta
+      name="description"
+      content="将人类自然语言和上下文整合为更清晰、更可执行的 AI 提示词。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+SC:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="noise" aria-hidden="true"></div>
+
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Human language in. Clear AI intent out.</p>
+        <h1>提示词优化器</h1>
+        <p class="hero-text">
+          把自然表达、背景信息、隐含要求和输出格式整理成 AI 更容易理解的输入。
+        </p>
+      </div>
+
+      <div class="hero-metrics">
+        <article class="metric-card">
+          <span class="metric-label">01</span>
+          <strong>意图识别</strong>
+          <p>自动判断更像写作、代码、分析、规划还是通用协作。</p>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">02</span>
+          <strong>上下文注入</strong>
+          <p>把背景、限制、参考资料和风格偏好拼成结构化输入。</p>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">03</span>
+          <strong>输出可复制</strong>
+          <p>直接生成可投喂给 ChatGPT、Claude、Gemini 或其他模型的提示词。</p>
+        </article>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="panel input-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-kicker">Step 1</p>
+            <h2>输入你现在的表达</h2>
+          </div>
+          <div class="panel-actions">
+            <button id="sample-btn" class="ghost-btn" type="button">填充示例</button>
+            <button id="clear-btn" class="ghost-btn" type="button">清空</button>
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <label class="field field-wide">
+            <span>原始需求</span>
+            <textarea
+              id="raw-input"
+              rows="7"
+              placeholder="例如：帮我把这个产品介绍写得更专业一点，但不要太像广告，还要适合官网首屏。"
+            ></textarea>
+          </label>
+
+          <label class="field field-wide">
+            <span>补充上下文</span>
+            <textarea
+              id="context-input"
+              rows="5"
+              placeholder="补充项目背景、目标用户、业务场景、你已经做过的尝试，或 AI 需要知道的事实。"
+            ></textarea>
+          </label>
+
+          <label class="field">
+            <span>优化模式</span>
+            <select id="mode-select">
+              <option value="auto">自动判断</option>
+              <option value="prompt">提示词工程</option>
+              <option value="writing">内容写作</option>
+              <option value="coding">代码协作</option>
+              <option value="analysis">分析总结</option>
+              <option value="planning">规划拆解</option>
+              <option value="support">客服 / 沟通</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>输出格式</span>
+            <select id="format-select">
+              <option value="structured">结构化回答</option>
+              <option value="steps">步骤列表</option>
+              <option value="table">表格</option>
+              <option value="json">JSON</option>
+              <option value="freeform">自然语言</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>语气风格</span>
+            <select id="style-select">
+              <option value="clear">清晰直接</option>
+              <option value="professional">专业克制</option>
+              <option value="friendly">友好易懂</option>
+              <option value="creative">有创意</option>
+              <option value="strict">严格执行</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>输出语言</span>
+            <select id="language-select">
+              <option value="zh">中文</option>
+              <option value="en">英文</option>
+              <option value="bilingual">中英双语</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>监工模式</span>
+            <select id="oversight-select">
+              <option value="standard">标准监工</option>
+              <option value="strict">严格监工</option>
+              <option value="off">关闭</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>持续工作时长</span>
+            <select id="duration-select">
+              <option value="24h">24 小时连续推进</option>
+              <option value="8h">8 小时工作周期</option>
+              <option value="4h">4 小时冲刺</option>
+              <option value="2h">2 小时快修</option>
+              <option value="until_done">直到完成为止</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>回报频率</span>
+            <select id="checkpoint-select">
+              <option value="30m">每 30 分钟</option>
+              <option value="15m">每 15 分钟</option>
+              <option value="60m">每 60 分钟</option>
+              <option value="phase">每阶段一次</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>目标对象 / 使用场景</span>
+            <input
+              id="audience-input"
+              type="text"
+              placeholder="例如：官网访客、老板汇报、AI 编程助手、短视频文案"
+            />
+          </label>
+
+          <label class="field">
+            <span>参考资料 / 已知事实</span>
+            <input
+              id="reference-input"
+              type="text"
+              placeholder="例如：已有文案、会议纪要、产品卖点、接口文档"
+            />
+          </label>
+
+          <label class="field field-wide">
+            <span>必须包含</span>
+            <textarea
+              id="must-input"
+              rows="4"
+              placeholder="每行一条，例如：必须先总结需求 / 必须给出示例 / 必须保留专业术语"
+            ></textarea>
+          </label>
+
+          <label class="field field-wide">
+            <span>避免出现</span>
+            <textarea
+              id="avoid-input"
+              rows="4"
+              placeholder="每行一条，例如：避免套话 / 不要过度营销 / 不要省略风险 / 不要编造事实"
+            ></textarea>
+          </label>
+        </div>
+
+        <div class="cta-row">
+          <button id="generate-btn" class="primary-btn" type="button">生成优化提示词</button>
+          <p class="helper-text">这个工具不会调用 AI，它只负责把你的输入整理得更适合喂给 AI。</p>
+        </div>
+      </section>
+
+      <section class="panel output-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-kicker">Step 2</p>
+            <h2>优化结果</h2>
+          </div>
+          <div class="panel-actions">
+            <button id="copy-btn" class="ghost-btn" type="button">复制提示词</button>
+          </div>
+        </div>
+
+        <div class="insight-grid">
+          <article class="insight-card">
+            <span>识别类型</span>
+            <strong id="detected-intent">等待输入</strong>
+          </article>
+          <article class="insight-card">
+            <span>上下文强度</span>
+            <strong id="context-strength">低</strong>
+          </article>
+          <article class="insight-card">
+            <span>建议澄清</span>
+            <strong id="clarify-count">0 条</strong>
+          </article>
+          <article class="insight-card">
+            <span>监工状态</span>
+            <strong id="oversight-status">标准监工</strong>
+          </article>
+          <article class="insight-card">
+            <span>持续节奏</span>
+            <strong id="duration-status">24 小时</strong>
+          </article>
+        </div>
+
+        <div class="output-stack">
+          <article class="result-card">
+            <div class="result-head">
+              <h3>优化后的提示词</h3>
+              <span>Ready to paste</span>
+            </div>
+            <pre id="optimized-output" class="code-block">请先在左侧输入原始需求与上下文。</pre>
+          </article>
+
+          <article class="result-card">
+            <div class="result-head">
+              <h3>监工提示词</h3>
+              <div class="panel-actions">
+                <span>Supervisor mode</span>
+                <button id="copy-supervisor-btn" class="ghost-btn" type="button">复制监工提示词</button>
+              </div>
+            </div>
+            <pre id="supervisor-output" class="code-block compact-code">开启监工模式后，这里会生成一个专门盯进度、控范围、做验收的辅助提示词。</pre>
+          </article>
+
+          <article class="result-card">
+            <div class="result-head">
+              <h3>监工验收清单</h3>
+              <span>Quality gates</span>
+            </div>
+            <div id="oversight-output" class="summary-list">
+              <p>系统会在这里列出交付前要过的检查项。</p>
+            </div>
+          </article>
+
+          <article class="result-card">
+            <div class="result-head">
+              <h3>持续执行排班</h3>
+              <span>24h supervision loop</span>
+            </div>
+            <div id="cadence-output" class="summary-list">
+              <p>系统会在这里拆出阶段节奏、进度更新节点和返工触发条件。</p>
+            </div>
+          </article>
+
+          <div class="sub-grid">
+            <article class="result-card">
+              <div class="result-head">
+                <h3>AI 理解摘要</h3>
+                <span>Intent map</span>
+              </div>
+              <div id="summary-output" class="summary-list">
+                <p>系统会在这里提炼你的意图、受众、限制和输出方向。</p>
+              </div>
+            </article>
+
+            <article class="result-card">
+              <div class="result-head">
+                <h3>建议补充的信息</h3>
+                <span>Clarify gaps</span>
+              </div>
+              <div id="clarify-output" class="summary-list">
+                <p>如果你的信息不完整，这里会提示哪些上下文值得补上。</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Prompt Optimizer · 静态本地工具 · 适合先整理输入，再交给 AI 执行</p>
+    </footer>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
